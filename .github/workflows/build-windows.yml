@@ -8,45 +8,83 @@ on:
 
 jobs:
   build-windows:
-    runs-on: windows-latest  # 使用 GitHub 托管的 Windows 虚拟机
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 优化1: 使用更稳定的 Qt 安装方式，缓存支持
       - name: Install Qt6 (MinGW)
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.7.0'                # 根据需要调整版本
+          version: '6.6.3'                # 使用 LTS 版本更稳定
           host: 'windows'
           target: 'desktop'
-          arch: 'win64_mingw'             # MinGW 64-bit
-          modules: 'qtbase qtsvg'         # 按需添加模块（如 qttools, qtdeclarative）
+          arch: 'win64_mingw'
+          modules: 'qtbase qtsvg'
+          cache: true                     # 启用缓存加速后续构建
           setup-python: false
 
-      - name: Install MinGW and CMake
-        run: |
-          choco install mingw cmake -y
-          echo "C:\mingw64\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+      # 优化2: 使用 Ninja 替代 MinGW Makefiles，更快
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@master
 
+      # 优化3: 使用 MSYS2 提供的 MinGW，更完整
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      # 优化4: 更健壮的 CMake 配置
       - name: Configure CMake
+        shell: msys2 {0}
         run: |
-          mkdir build
-          cd build
-          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${QT_ROOT_DIR}" \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_CXX_COMPILER=g++
 
+      # 优化5: 并行编译加速
       - name: Build project
+        shell: msys2 {0}
         run: |
-          cd build
-          cmake --build . --config Release
+          cmake --build build --parallel $(nproc)
 
+      # 优化6: 完整的部署和打包
       - name: Deploy Qt dependencies
+        shell: pwsh
         run: |
-          cd build\bin\Release
-          windeployqt AeroEngineQt.exe
+          $exePath = "build\bin\AeroEngineQt.exe"
+          if (Test-Path $exePath) {
+            windeployqt --release --force $exePath
+          } else {
+            Write-Error "Executable not found at $exePath"
+            exit 1
+          }
 
-      - name: Upload executable as artifact
+      # 优化7: 打包为压缩包，保留目录结构
+      - name: Package artifact
+        shell: pwsh
+        run: |
+          $dest = "AeroEngineQt-Windows-x64"
+          New-Item -ItemType Directory -Force -Path $dest
+          Copy-Item -Path "build\bin\*" -Destination $dest -Recurse -Force
+          Compress-Archive -Path $dest -DestinationPath "$dest.zip" -Force
+
+      # 优化8: 上传产物（包含 zip 和原始目录）
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: AeroEngineQt-Windows-x64
-          path: build/bin/Release/
+          path: |
+            AeroEngineQt-Windows-x64.zip
+            AeroEngineQt-Windows-x64/
+          if-no-files-found: error
+          retention-days: 30
