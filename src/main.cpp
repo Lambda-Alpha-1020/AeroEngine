@@ -17,7 +17,6 @@ static void setChineseFriendlyFont(QApplication &app)
         "Microsoft YaHei",
         "SimHei",
         "Arial Unicode MS"};
-
     QFontDatabase db;
     for (const QString &fam : candidates)
     {

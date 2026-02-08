@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 优化1: 使用更稳定的 Qt 安装方式，缓存支持
+      # 使用更稳定的 Qt 安装方式，缓存支持
       - name: Install Qt6 (MinGW)
         uses: jurplel/install-qt-action@v4
         with:
@@ -23,11 +23,11 @@ jobs:
           cache: true                     # 启用缓存加速后续构建
           setup-python: false
 
-      # 优化2: 使用 Ninja 替代 MinGW Makefiles，更快
+      # 使用 Ninja 替代 MinGW Makefiles，更快
       - name: Setup Ninja
         uses: ashutoshvarma/setup-ninja@master
 
-      # 优化3: 使用 MSYS2 提供的 MinGW，更完整
+      # 使用 MSYS2 提供的 MinGW，更完整
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -38,7 +38,7 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
 
-      # 优化4: 更健壮的 CMake 配置
+      # 更健壮的 CMake 配置
       - name: Configure CMake
         shell: msys2 {0}
         run: |
@@ -48,13 +48,13 @@ jobs:
             -DCMAKE_C_COMPILER=gcc \
             -DCMAKE_CXX_COMPILER=g++
 
-      # 优化5: 并行编译加速
+      # 并行编译加速
       - name: Build project
         shell: msys2 {0}
         run: |
           cmake --build build --parallel $(nproc)
 
-      # 优化6: 完整的部署和打包
+      # 完整的部署和打包
       - name: Deploy Qt dependencies
         shell: pwsh
         run: |
@@ -66,7 +66,7 @@ jobs:
             exit 1
           }
 
-      # 优化7: 打包为压缩包，保留目录结构
+      # 打包为压缩包，保留目录结构
       - name: Package artifact
         shell: pwsh
         run: |
@@ -75,13 +75,10 @@ jobs:
           Copy-Item -Path "build\bin\*" -Destination $dest -Recurse -Force
           Compress-Archive -Path $dest -DestinationPath "$dest.zip" -Force
 
-      # 优化8: 上传产物（包含 zip 和原始目录）
+      # 上传产物
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: AeroEngineQt-Windows-x64
-          path: |
-            AeroEngineQt-Windows-x64.zip
-            AeroEngineQt-Windows-x64/
           if-no-files-found: error
           retention-days: 30

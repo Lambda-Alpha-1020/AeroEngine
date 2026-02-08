@@ -10,25 +10,22 @@
 #include <QStyleOption>
 #include <QApplication>
 #include <QMouseEvent>
+#include <QResizeEvent>
 
 LoginWidget::LoginWidget(QWidget *parent)
     : QWidget(parent)
 {
-    // 设置窗口无边框（保留原有标志）
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+    // 设置窗口无边框
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     // 启用透明背景（让 paintEvent 的绘制生效）
     setAttribute(Qt::WA_TranslucentBackground);
 
-    // ========== 设置titleBar ==========
-    auto *titleBar = new QWidget(this);
-        titleBar->setFixedHeight(50);
-        titleBar->setStyleSheet("background: transparent;");
-    auto *titleLayout = new QHBoxLayout(titleBar);
-    titleLayout->setContentsMargins(0, 0, 0, 0); // 移除所有边距，确保按钮能真正靠右
-    titleLayout->setSpacing(0); // 移除所有边距，确保按钮能真正靠右
-    titleLayout->addStretch();  // 添加一个空白的 stretch（弹性空间），把按钮挤到右边
+    // ========== 设置 titleBar ==========
+    titleBar = new QWidget(this);
+    titleBar->setFixedHeight(50);
+    titleBar->setStyleSheet("background: transparent;");
     // 关闭按钮
-    auto *closeBtn = new QPushButton("×", titleBar);
+    closeBtn = new QPushButton("×", titleBar);
     closeBtn->setFixedSize(32, 32);
     closeBtn->setStyleSheet(R"(
         QPushButton {
@@ -47,10 +44,8 @@ LoginWidget::LoginWidget(QWidget *parent)
             background-color: #DC2626;
         }
     )");
-    closeBtn->move(width() - 42, 10);
     connect(closeBtn, &QPushButton::clicked, this, &QWidget::close);
-    titleLayout->addWidget(closeBtn);
-    // ========== 设置titleBar ==========
+    // ========== 设置 titleBar ==========
 
     m_logo = new QLabel("AeroEngine", this);
     QFont logoFont;
@@ -76,9 +71,18 @@ LoginWidget::LoginWidget(QWidget *parent)
 
     m_loginBtn = new QPushButton(QString::fromUtf8("登录"), this);
     m_loginBtn->setFixedHeight(48);
-    m_loginBtn->setStyleSheet(
-        "QPushButton{ background-color: #0a84ff; color: white; border-radius: 8px; font-size:24px; padding:8px 16px; }"
-        "QPushButton:pressed{ background-color: #066cd6; }");
+    m_loginBtn->setStyleSheet(R"(
+        QPushButton { 
+            background-color: #0a84ff; 
+            color: white; 
+            border-radius: 8px; 
+            font-size:24px;
+            padding:8px 16px; 
+        }
+        QPushButton:pressed { 
+            background-color: #066cd6; 
+        }
+    )");
 
     QLabel *bottomLinks = new QLabel(this);
     bottomLinks->setText(QString::fromUtf8("<a href=\"#\">账号登录</a> | <a href=\"#\">注册账号</a>"));
@@ -88,18 +92,19 @@ LoginWidget::LoginWidget(QWidget *parent)
     bottomLinks->setAlignment(Qt::AlignCenter);
     bottomLinks->setStyleSheet("color: #6b6b9a; background:transparent; font-size:24px;");
 
-    QVBoxLayout *v = new QVBoxLayout(this);
-    v->setContentsMargins(28, 24, 28, 20);
-    v->setSpacing(100);
-    v->addWidget(m_logo, 0, Qt::AlignHCenter);
-    v->addSpacing(10);
-    v->addWidget(m_avatar, 0, Qt::AlignHCenter);
-    v->addWidget(m_name);
-    v->addSpacing(8);
-    v->addWidget(m_loginBtn);
-    v->addStretch(1);
-    v->addWidget(bottomLinks);
-    setLayout(v);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(titleBar);
+    mainLayout->setContentsMargins(28, 24, 28, 20);
+    mainLayout->setSpacing(100);
+    mainLayout->addWidget(m_logo, 0, Qt::AlignHCenter);
+    mainLayout->addSpacing(10);
+    mainLayout->addWidget(m_avatar, 0, Qt::AlignHCenter);
+    mainLayout->addWidget(m_name);
+    mainLayout->addSpacing(8);
+    mainLayout->addWidget(m_loginBtn);
+    mainLayout->addStretch(1);
+    mainLayout->addWidget(bottomLinks);
+    setLayout(mainLayout);
 }
 
 void LoginWidget::paintEvent(QPaintEvent *event)
@@ -148,31 +153,48 @@ QPixmap LoginWidget::createAvatar(int size)
     return pix;
 }
 
-// 添加以下两个函数以支持点击任意位置拖动窗口
+// ======拖动窗口======
 void LoginWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         m_dragPosition = event->globalPosition().toPoint() - frameGeometry().topLeft();
         grabMouse();
         event->accept();
     }
 }
-
 void LoginWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (underMouse()) { // 确保是我们的窗口
-        if (!m_dragPosition.isNull()) {
+    if (underMouse())
+    {
+        if (!m_dragPosition.isNull())
+        {
             move(event->globalPosition().toPoint() - m_dragPosition);
             event->accept();
         }
     }
 }
-
 void LoginWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         m_dragPosition = QPoint(); // 清空
-        releaseMouse(); // 释放鼠标捕获
+        releaseMouse();            // 释放鼠标捕获
         event->accept();
     }
 }
+// ======拖动窗口======
+
+// ======将关闭按钮固定到右上角======
+void LoginWidget::resizeEvent(QResizeEvent *event)
+{
+    qDebug() << "debug is ok";
+    if (closeBtn && titleBar) {
+        int x = titleBar->width() - closeBtn->width();
+        int y = 0;
+        qDebug() << "x:" << x;
+        closeBtn->move(x, y);
+    }
+    QWidget::resizeEvent(event); // 调用基类
+}
+// ======将关闭按钮固定到右上角======

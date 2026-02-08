@@ -18,12 +18,15 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 private:
-    QLabel *m_logo;
-    QLabel *m_avatar;
-    QLabel *m_name;
-    QPushButton *m_loginBtn;
+    QWidget *titleBar = nullptr;
+    QPushButton *closeBtn = nullptr;
+    QLabel *m_logo = nullptr;
+    QLabel *m_avatar = nullptr;
+    QLabel *m_name = nullptr;
+    QPushButton *m_loginBtn = nullptr;
     QPixmap createAvatar(int size);
     QPoint m_dragPosition;
 };
