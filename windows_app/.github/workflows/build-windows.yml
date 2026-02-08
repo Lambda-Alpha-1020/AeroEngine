@@ -1,0 +1,52 @@
+name: AeroEngine Client
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest  # 使用 GitHub 托管的 Windows 虚拟机
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Qt6 (MinGW)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.0'                # 根据需要调整版本
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_mingw'             # MinGW 64-bit
+          modules: 'qtbase qtsvg'         # 按需添加模块（如 qttools, qtdeclarative）
+          setup-python: false
+
+      - name: Install MinGW and CMake
+        run: |
+          choco install mingw cmake -y
+          echo "C:\mingw64\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build project
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Deploy Qt dependencies
+        run: |
+          cd build\bin\Release
+          windeployqt AeroEngineQt.exe
+
+      - name: Upload executable as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroEngineQt-Windows-x64
+          path: build/bin/Release/
