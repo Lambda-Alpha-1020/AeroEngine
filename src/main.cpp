@@ -49,9 +49,10 @@ int main(int argc, char *argv[])
     }
     else
     {
+        qDebug() << " ok ";
         QRect screenGeometry = screen->geometry(); // 获取完整屏幕区域
         int width = screenGeometry.width() * 0.175;
-        int height = screenGeometry.height() * 0.45;
+        int height = screenGeometry.height() * 0.3;
         w.resize(width, height);
         w.move(screenGeometry.center() - QPoint(w.width()/2, w.height()/2)); // 自动居中
     }
