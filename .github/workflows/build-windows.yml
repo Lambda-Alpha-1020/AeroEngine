@@ -19,7 +19,7 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'win64_mingw'
-          modules: 'qtsvg'
+          modules: ''
           cache: true                     # 启用缓存加速后续构建
           setup-python: false
 
