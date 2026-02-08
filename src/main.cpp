@@ -33,6 +33,9 @@ static void setChineseFriendlyFont(QApplication &app)
 int main(int argc, char *argv[])
 {
 
+    // 禁用 High-DPI 自动缩放
+    QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+
     QApplication app(argc, argv);
 
     setChineseFriendlyFont(app);
@@ -52,7 +55,7 @@ int main(int argc, char *argv[])
         qDebug() << " ok ";
         QRect screenGeometry = screen->geometry(); // 获取完整屏幕区域
         int width = screenGeometry.width() * 0.175;
-        int height = screenGeometry.height() * 0.3;
+        int height = screenGeometry.height() * 0.45;
         w.resize(width, height);
         w.move(screenGeometry.center() - QPoint(w.width()/2, w.height()/2)); // 自动居中
     }
