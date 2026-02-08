@@ -1,3 +1,9 @@
+# Build outputs
+/build/
+/bin/
+.idea/
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
