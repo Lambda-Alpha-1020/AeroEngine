@@ -19,6 +19,39 @@ LoginWidget::LoginWidget(QWidget *parent)
     // 启用透明背景（让 paintEvent 的绘制生效）
     setAttribute(Qt::WA_TranslucentBackground);
 
+    // ========== 设置titleBar ==========
+    auto *titleBar = new QWidget(this);
+        titleBar->setFixedHeight(50);
+        titleBar->setStyleSheet("background: transparent;");
+    auto *titleLayout = new QHBoxLayout(titleBar);
+    titleLayout->setContentsMargins(0, 0, 0, 0); // 移除所有边距，确保按钮能真正靠右
+    titleLayout->setSpacing(0); // 移除所有边距，确保按钮能真正靠右
+    titleLayout->addStretch();  // 添加一个空白的 stretch（弹性空间），把按钮挤到右边
+    // 关闭按钮
+    auto *closeBtn = new QPushButton("×", titleBar);
+    closeBtn->setFixedSize(32, 32);
+    closeBtn->setStyleSheet(R"(
+        QPushButton {
+            background-color: rgba(255, 255, 255, 0.6);
+            color: #8B5CF6;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        QPushButton:hover {
+            background-color: #EF4444;
+            color: white;
+        }
+        QPushButton:pressed {
+            background-color: #DC2626;
+        }
+    )");
+    closeBtn->move(width() - 42, 10);
+    connect(closeBtn, &QPushButton::clicked, this, &QWidget::close);
+    titleLayout->addWidget(closeBtn);
+    // ========== 设置titleBar ==========
+
     m_logo = new QLabel("AeroEngine", this);
     QFont logoFont;
     logoFont.setPointSize(40);
@@ -118,12 +151,8 @@ QPixmap LoginWidget::createAvatar(int size)
 // 添加以下两个函数以支持点击任意位置拖动窗口
 void LoginWidget::mousePressEvent(QMouseEvent *event)
 {
-    qDebug() << "Mouse pressed at:" << event->position()
-             << "isWindow:" << isWindow()
-             << "dragPos before:" << m_dragPosition;
     if (event->button() == Qt::LeftButton) {
         m_dragPosition = event->globalPosition().toPoint() - frameGeometry().topLeft();
-        qDebug() << "Drag started, offset:" << m_dragPosition;
         grabMouse();
         event->accept();
     }
@@ -143,7 +172,7 @@ void LoginWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         m_dragPosition = QPoint(); // 清空
-        releaseMouse(); // 👈 释放鼠标捕获
+        releaseMouse(); // 释放鼠标捕获
         event->accept();
     }
 }

@@ -44,17 +44,15 @@ int main(int argc, char *argv[])
     LoginWidget w;
     // 获取主屏幕
     QScreen *screen = QGuiApplication::primaryScreen();
-    w.setWindowTitle(QString::fromUtf8("AeroEngine - 登录"));
     if (!screen)
     {
-        // 安全兜底
-        w.resize(420, 620);
+        w.resize(320, 520);
     }
     else
     {
         QRect screenGeometry = screen->geometry(); // 获取完整屏幕区域
-        int width = screenGeometry.width() * 0.175;   // 屏幕宽度的 40%
-        int height = screenGeometry.height() * 0.45; // 屏幕高度的 60%
+        int width = screenGeometry.width() * 0.175;
+        int height = screenGeometry.height() * 0.45;
         w.resize(width, height);
         w.move(screenGeometry.center() - QPoint(w.width()/2, w.height()/2)); // 自动居中
     }
