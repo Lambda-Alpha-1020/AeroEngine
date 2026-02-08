@@ -33,6 +33,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
+          cache: true
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-cmake
@@ -75,10 +76,12 @@ jobs:
           Copy-Item -Path "build\bin\*" -Destination $dest -Recurse -Force
           Compress-Archive -Path $dest -DestinationPath "$dest.zip" -Force
 
-      # 上传产物
+      # 上传产物（包含 zip 和原始目录）
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: AeroEngineQt-Windows-x64
+          path: |
+            AeroEngineQt-Windows-x64/
           if-no-files-found: error
           retention-days: 30
