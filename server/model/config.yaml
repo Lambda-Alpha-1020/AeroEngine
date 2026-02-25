@@ -1,0 +1,33 @@
+# C-MAPSS 航空发动机寿命预测模型配置
+
+# 模型权重
+weights: null  # 预训练权重路径，null 表示从头训练
+
+# 训练参数
+epochs: 100
+batch_size: 64
+sequence_length: 32
+
+# 数据集选择
+fd_number: "1"  # 可选: "1", "2", "3", "4"
+
+# 调试模式
+debug: false
+
+# 学习率
+learning_rate: 0.001
+
+# 模型结构
+hidden_units: 64
+dropout_rate: 0.2
+
+# 数据路径
+data_dir: "CMAPSSData"
+
+# 日志和保存
+log_dir: "logs"
+checkpoint_dir: "checkpoints"
+save_best_only: true
+
+# 早停
+early_stopping_patience: 10
